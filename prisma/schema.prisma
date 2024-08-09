@@ -1,0 +1,280 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model asesor {
+  id                      Int                       @id @default(autoincrement())
+  username                String?                   @db.VarChar(100)
+  apellido                String?                   @db.VarChar(100)
+  nombre                  String?                   @db.VarChar(100)
+  fecha_nacimiento        DateTime?                 @db.Date
+  fecha_ingreso           DateTime?                 @db.Date
+  inscripto_iva           Boolean?
+  cuit                    String?                   @db.VarChar(20)
+  email                   String?                   @db.VarChar(100)
+  interno_externo         String?                   @db.VarChar(20)
+  contrasena              String?                   @db.VarChar(100)
+  comisionCoordinador1    Int?
+  comisionCoordinador2    Int?
+  comisionCoordinador3    Int?
+  comisionEmpresa1        Int?
+  comisionEmpresa2        Int?
+  comisionEmpresa3        Int?
+  comisionManager1        Int?
+  comisionManager2        Int?
+  comisionManager3        Int?
+  asesor_coordinador      asesor_coordinador[]
+  asesor_manager          asesor_manager[]
+  liquidaciones           liquidaciones[]
+  relacion_cliente_asesor relacion_cliente_asesor[]
+}
+
+model asesor_coordinador {
+  id             Int          @id @default(autoincrement())
+  asesor_id      Int?
+  coordinador_id Int?
+  asesor         asesor?      @relation(fields: [asesor_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  coordinador    coordinador? @relation(fields: [coordinador_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model cliente {
+  id                       Int                       @id @default(autoincrement())
+  nombre                   String?                   @db.VarChar(100)
+  apellido                 String?                   @db.VarChar(100)
+  tipo_persona             String?                   @db.VarChar(50)
+  cuit                     String?                   @db.VarChar(20)
+  fecha_inicio_actividades DateTime?                 @db.Date
+  direccion                String?                   @db.VarChar(200)
+  codigo_postal            String?                   @db.VarChar(20)
+  provincia                String?                   @db.VarChar(100)
+  localidad                String?                   @db.VarChar(100)
+  telefono                 String?                   @db.VarChar(20)
+  email                    String?                   @db.VarChar(100)
+  compania                 String?                   @db.VarChar(100)
+  numero_cuenta            Int?                      @unique(map: "unique_numero_cuenta")
+  fecha_creacion           DateTime?                 @db.Date
+  observacion              String?
+  aranceles                aranceles[]
+  aranceles_publicos       aranceles_publicos[]
+  fondos                   fondos[]
+  relacion_cliente_asesor  relacion_cliente_asesor[]
+  ventas                   ventas[]
+}
+
+model comisiones {
+  id                        Int      @id @default(autoincrement())
+  v_manager_manager         Decimal? @db.Decimal(10, 2)
+  v_manager_coordinador     Decimal? @db.Decimal(10, 2)
+  v_manager_asesor          Decimal? @db.Decimal(10, 2)
+  v_coordinador_manager     Decimal? @db.Decimal(10, 2)
+  v_coordinador_coordinador Decimal? @db.Decimal(10, 2)
+  v_coordinador_asesor      Decimal? @db.Decimal(10, 2)
+  v_asesor_manager          Decimal? @db.Decimal(10, 2)
+  v_asesor_coordinador      Decimal? @db.Decimal(10, 2)
+  v_asesor_asesor           Decimal? @db.Decimal(10, 2)
+  id_compania               Int?
+  manager_id                Int?
+  v_asesor_sc_manager       Decimal? @db.Decimal(10, 2)
+  v_asesor_sc_asesor        Decimal? @db.Decimal(10, 2)
+  empresa                   empresa? @relation(fields: [id_compania], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  manager                   manager? @relation(fields: [manager_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "id_manager")
+}
+
+model coordinador {
+  id                      Int                       @id @default(autoincrement())
+  username                String?                   @db.VarChar(100)
+  apellido                String?                   @db.VarChar(100)
+  nombre                  String?                   @db.VarChar(100)
+  fecha_nacimiento        DateTime?                 @db.Date
+  fecha_ingreso           DateTime?                 @db.Date
+  inscripto_iva           Boolean?
+  cuit                    String?                   @db.VarChar(20)
+  email                   String?                   @db.VarChar(100)
+  interno_externo         String?                   @db.VarChar(20)
+  contrasena              String?                   @db.VarChar(100)
+  comisionEmpresa1        Int?
+  comisionEmpresa2        Int?
+  comisionEmpresa3        Int?
+  comisionManager1        Int?
+  comisionManager2        Int?
+  comisionManager3        Int?
+  asesor_coordinador      asesor_coordinador[]
+  asesor_manager          asesor_manager[]
+  liquidaciones           liquidaciones[]
+  relacion_cliente_asesor relacion_cliente_asesor[]
+}
+
+model empresa {
+  id             Int              @id @default(autoincrement())
+  nombre         String?          @db.VarChar(20)
+  comisiones     comisiones[]
+  equipo_empresa equipo_empresa[]
+  periodos       periodos[]
+}
+
+model equipo_empresa {
+  id         Int      @id @default(autoincrement())
+  empresa_id Int?
+  manager_id Int?
+  empresa    empresa? @relation(fields: [empresa_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  manager    manager? @relation(fields: [manager_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "id_manager")
+}
+
+model manager {
+  id                      Int                       @id @default(autoincrement())
+  username                String?                   @db.VarChar(100)
+  apellido                String?                   @db.VarChar(100)
+  nombre                  String?                   @db.VarChar(100)
+  fecha_nacimiento        DateTime?                 @db.Date
+  fecha_ingreso           DateTime?                 @db.Date
+  inscripto_iva           Boolean?
+  cuit                    String?                   @db.VarChar(20)
+  email                   String?                   @db.VarChar(100)
+  interno_externo         String?                   @db.VarChar(20)
+  contrasena              String?                   @db.VarChar(100)
+  comisionEmpresa1        Int?
+  comisionEmpresa2        Int?
+  comisionEmpresa3        Int?
+  asesor_manager          asesor_manager[]
+  comisiones              comisiones[]
+  equipo_empresa          equipo_empresa[]
+  liquidaciones           liquidaciones[]
+  relacion_cliente_asesor relacion_cliente_asesor[]
+}
+
+model relacion_cliente_asesor {
+  id             Int          @id @default(autoincrement())
+  cliente_id     Int
+  asesor_id      Int?
+  coordinador_id Int?
+  manager_id     Int?
+  asesor         asesor?      @relation(fields: [asesor_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  cliente        cliente      @relation(fields: [cliente_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  coordinador    coordinador? @relation(fields: [coordinador_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  manager        manager?     @relation(fields: [manager_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model ventas {
+  id         Int       @id @default(autoincrement())
+  cliente_id Int?
+  periodo    DateTime? @db.Date
+  archivo_a  String?   @db.VarChar(500)
+  archivo_b  String?   @db.VarChar(500)
+  archivo_c  String?   @db.VarChar(500)
+  estado     Boolean?
+  fecha_pago DateTime? @db.Date
+  total      Int?
+  cliente    cliente?  @relation(fields: [cliente_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model asesor_manager {
+  id             Int          @id @default(autoincrement())
+  manager_id     Int
+  asesor_id      Int?
+  coordinador_id Int?
+  asesor         asesor?      @relation(fields: [asesor_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  coordinador    coordinador? @relation(fields: [coordinador_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  manager        manager      @relation(fields: [manager_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model aranceles {
+  id                    Int                     @id @default(autoincrement())
+  numero_cuenta         Int?
+  cliente               String?                 @db.VarChar(255)
+  tipo_de_arance        String?                 @db.VarChar(255)
+  prima                 Decimal?                @db.Decimal(10, 2)
+  porcentaje_comi       Int?
+  prima_desc            Decimal?                @db.Decimal(10, 2)
+  total                 Decimal?                @db.Decimal(10, 2)
+  periodo_id            Int?
+  cliente_aranceles     cliente?                @relation(fields: [numero_cuenta], references: [numero_cuenta], onDelete: NoAction, onUpdate: NoAction, map: "aranceles_cliente_fkey")
+  periodos              periodos?               @relation(fields: [periodo_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  liquidacion_aranceles liquidacion_aranceles[]
+}
+
+model aranceles_publicos {
+  id                      Int                       @id @default(autoincrement())
+  numero_cuenta           Int?
+  cliente                 String?                   @db.VarChar(255)
+  prima                   Decimal?                  @db.Decimal(10, 2)
+  porcentaje_comi         Int?
+  prima_desc              Decimal?                  @db.Decimal(10, 2)
+  tipo_de_cambio          Int?
+  total                   Decimal?                  @db.Decimal(10, 2)
+  periodo_id              Int?
+  cliente_aranceles_p     cliente?                  @relation(fields: [numero_cuenta], references: [numero_cuenta], onDelete: NoAction, onUpdate: NoAction)
+  periodos                periodos?                 @relation(fields: [periodo_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  liquidacion_aranceles_p liquidacion_aranceles_p[]
+}
+
+model fondos {
+  id                 Int                  @id @default(autoincrement())
+  numero_cuenta      Int?
+  cliente            String?              @db.VarChar(255)
+  prima              Decimal?             @db.Decimal(10, 2)
+  porcentaje_comi    Int?
+  prima_desc         Decimal?             @db.Decimal(10, 2)
+  total              Decimal?             @db.Decimal(10, 2)
+  periodo_id         Int?
+  cliente_fondos     cliente?             @relation(fields: [numero_cuenta], references: [numero_cuenta], onDelete: NoAction, onUpdate: NoAction)
+  periodos           periodos?            @relation(fields: [periodo_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  liquidacion_fondos liquidacion_fondos[]
+}
+
+model liquidacion_aranceles {
+  id             Int            @id @default(autoincrement())
+  liquidacion_id Int?
+  arancel_id     Int?
+  aranceles      aranceles?     @relation(fields: [arancel_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  liquidaciones  liquidaciones? @relation(fields: [liquidacion_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model liquidacion_aranceles_p {
+  id                 Int                 @id @default(autoincrement())
+  liquidacion_id     Int?
+  arancel_publico_id Int?
+  aranceles_publicos aranceles_publicos? @relation(fields: [arancel_publico_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  liquidaciones      liquidaciones?      @relation(fields: [liquidacion_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model liquidacion_fondos {
+  id             Int            @id @default(autoincrement())
+  liquidacion_id Int?
+  fondo_id       Int?
+  fondos         fondos?        @relation(fields: [fondo_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  liquidaciones  liquidaciones? @relation(fields: [liquidacion_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model liquidaciones {
+  id                      Int                       @id @default(autoincrement())
+  asesor_id               Int?
+  coordinador_id          Int?
+  manager_id              Int?
+  periodo_id              Int?
+  estado                  String?                   @db.VarChar(255)
+  fecha_pago              DateTime?                 @db.Date
+  liquidacion_aranceles   liquidacion_aranceles[]
+  liquidacion_aranceles_p liquidacion_aranceles_p[]
+  liquidacion_fondos      liquidacion_fondos[]
+  asesor                  asesor?                   @relation(fields: [asesor_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  coordinador             coordinador?              @relation(fields: [coordinador_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  manager                 manager?                  @relation(fields: [manager_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  periodos                periodos?                 @relation(fields: [periodo_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model periodos {
+  id                 Int                  @id @default(autoincrement())
+  fecha_creacion     DateTime?            @db.Date
+  compa_ia_id        Int                  @map("compañia_id")
+  aranceles          aranceles[]
+  aranceles_publicos aranceles_publicos[]
+  fondos             fondos[]
+  liquidaciones      liquidaciones[]
+  empresa            empresa              @relation(fields: [compa_ia_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
