@@ -117,9 +117,6 @@ const createArancelesFromExcel = async (req, res) => {
       const totalManager = prima_desc * comisionManager / 100;
 
       const totalCoordinador = prima_desc * comisionCoordinador / 100
-
-      console.log(totalManager);
-      console.log(totalCoordinador);
     
       return {
         arancel: {
