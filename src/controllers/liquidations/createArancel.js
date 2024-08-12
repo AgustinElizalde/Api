@@ -98,38 +98,34 @@ const createArancelesFromExcel = async (req, res) => {
         }
       });
 
-      comisionManager = 0
-      
-      comisionCoordinador = 0
-
-      if (rol === "manager") {
-        porcentaje_comi = 70;
-      } else if (rol === "asesor") {
-        comisionManager = comisiones?.comisionManager1
-        comisionCoordinador = comisiones?.comisionCoordinador1
-        porcentaje_comi = 28;
-      }
+      comisionManager = comisiones?.comisionManager1
+  
+      comisionCoordinador = comisiones?.comisionCoordinador1
 
       const prima_desc = Number(row[3]) * 0.28;
 
-      const total = prima_desc * porcentaje_comi / 100;
+      if (rol === "manager") {
+        porcentaje_comi = 100;
+        primaTotal = prima_desc * porcentaje_comi / 100;
+      } else if (rol === "asesor") {
+        porcentaje_comi = comisionManager;
+        primaTotal = prima_desc * comisionManager / 100;
+      }
       
-      const totalManager = prima_desc * comisionManager / 100;
+      const arancel = {
+        numero_cuenta,
+        cliente: row[1],
+        tipo_de_arance: row[2],
+        prima: Number(row[3]),
+        porcentaje_comi,
+        prima_desc,
+        total: primaTotal,
+        periodo_id: Number(periodo_id),
+      };
 
-      const totalCoordinador = prima_desc * comisionCoordinador / 100
-    
       return {
-        arancel: {
-          numero_cuenta: numero_cuenta,
-          cliente: row[1],
-          tipo_de_arance: row[2],
-          prima: Number(row[3]),
-          porcentaje_comi: porcentaje_comi,
-          prima_desc: prima_desc,
-          total: total,
-          periodo_id: Number(periodo_id),
-        },
-        liquidacion_id: liquidacion_id,
+        arancel,
+        liquidacion_id,
       };
     }));
     
@@ -166,6 +162,8 @@ const createArancelesFromExcel = async (req, res) => {
         }
       }
     });
+
+
 
     res.status(201).json({ createdAranceles, createdRelations });
   } catch (error) {
