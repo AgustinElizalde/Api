@@ -95,23 +95,28 @@ const createArancelesFromExcel = async (req, res) => {
         select: {
           comisionManager1: true,
           comisionCoordinador1: true,
+          comisionEmpresa1: true,
         }
       });
 
-      comisionManager = comisiones?.comisionManager1
+      porcentaje_manager = comisiones?.comisionManager1;
   
-      comisionCoordinador = comisiones?.comisionCoordinador1
+      porcentaje_coordinador = comisiones?.comisionCoordinador1;
+
+      porcentaje_asesor  = comisiones?.comisionEmpresa1;
 
       const prima_desc = Number(row[3]) * 0.28;
 
       if (rol === "manager") {
         porcentaje_comi = 100;
-        primaTotal = prima_desc * porcentaje_comi / 100;
+        prima_total = prima_desc;
       } else if (rol === "asesor") {
-        porcentaje_comi = comisionManager;
-        primaTotal = prima_desc * comisionManager / 100;
+        porcentaje_comi = porcentaje_asesor
+        comision_coordinador = prima_desc * porcentaje_coordinador / 100;
+        comision_manager = prima_desc * porcentaje_manager / 100;
+        prima_total = prima_desc * porcentaje_comi / 100
       }
-      
+
       const arancel = {
         numero_cuenta,
         cliente: row[1],
@@ -119,13 +124,15 @@ const createArancelesFromExcel = async (req, res) => {
         prima: Number(row[3]),
         porcentaje_comi,
         prima_desc,
-        total: primaTotal,
+        total: prima_total,
         periodo_id: Number(periodo_id),
       };
 
       return {
         arancel,
         liquidacion_id,
+        comision_manager,
+        comision_coordinador
       };
     }));
     
@@ -163,9 +170,49 @@ const createArancelesFromExcel = async (req, res) => {
       }
     });
 
+    const porcentajeManager = createdAranceles.map((arancel, index) => ({
+      numero_cuenta: arancel.numero_cuenta,
+      cliente: arancel.cliente,
+      tipo_de_arance: arancel.tipo_de_arance,
+      prima: arancel.prima,
+      prima_desc: arancel.prima_desc,
+      total: aranceles[index].comision_manager,
+      periodo_id: arancel.periodo_id
+    }));
+    
+    await prisma.aranceles.createMany({
+      data: porcentajeManager,
+    });
+    const comisionManager = await prisma.aranceles.findMany({
+      where: {
+        numero_cuenta: {
+          in: porcentajeManager.map(relation => relation.numero_cuenta)
+        },
+      },
+    });
 
+    const porcentajeCoordinador = createdAranceles.map((arancel, index) => ({
+      numero_cuenta: arancel.numero_cuenta,
+      cliente: arancel.cliente,
+      tipo_de_arance: arancel.tipo_de_arance,
+      prima: arancel.prima,
+      prima_desc: arancel.prima_desc,
+      total: aranceles[index].comision_coordinador,
+      periodo_id: arancel.periodo_id
+    }));
+    
+    await prisma.aranceles.createMany({
+      data: porcentajeCoordinador,
+    });
+    const comisionCoordinador = await prisma.aranceles.findMany({
+      where: {
+        numero_cuenta: {
+          in: porcentajeCoordinador.map(relation => relation.numero_cuenta)
+        },
+      },
+    });
 
-    res.status(201).json({ createdAranceles, createdRelations });
+    res.status(201).json({ createdAranceles, createdRelations, comisionManager, comisionCoordinador});
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
